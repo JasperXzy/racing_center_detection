@@ -1,0 +1,17 @@
+# media
+*.jpg
+*.png
+*.jpeg
+*.gif
+*.mp4
+*.avi
+*.mov
+
+# model
+*.pt
+*.onnx
+*.bin
+
+# dataset
+raw_image/
+line_follow_dataset/
