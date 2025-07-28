@@ -1,13 +1,12 @@
 #include "racing_track_detection/racing_track_detection.h"
-
 #include <fstream>
 #include <string>
 #include <cmath> // For std::exp (sigmoid inverse) or direct sigmoid computation
-
 #include <opencv2/opencv.hpp>
 #include "dnn_node/util/image_proc.h"
 #include "hobot_cv/hobotcv_imgproc.h"
 #include "rclcpp/qos.hpp"
+
 void prepare_nv12_tensor_without_padding(const char *image_data,
                                          int image_height,
                                          int image_width,
@@ -137,7 +136,7 @@ int TrackDetectionNode::PostProcess(
   std::shared_ptr<LineCoordinateResult> result =
       std::make_shared<LineCoordinateResult>();
   
-  // Parse现在会填充 x, y, confidence
+  // Parse填充 x, y, confidence
   line_coordinate_parser->Parse(result, outputs->output_tensors[0]);
   
   float x = result->x;
@@ -154,7 +153,7 @@ int TrackDetectionNode::PostProcess(
                "PostProcess mapped x: %d, mapped y: %d, confidence: %f",
                static_cast<int>(x), static_cast<int>(y), confidence);
 
-  // 检查巡线功能是否开启 及 置信度阈值
+  // 检查巡线功能是否开启及置信度阈值
   if (!enable_lane_following_) {
     RCLCPP_DEBUG(rclcpp::get_logger("TrackDetectionNode"), "Lane following is disabled, skip publishing.");
     return 0;
@@ -168,15 +167,15 @@ int TrackDetectionNode::PostProcess(
   target.set__type("track_center");
   
   // 添加坐标点到 ai_msgs::msg::Point 的 point 数组中
-  ai_msgs::msg::Point track_center_ai_point; // 注意Point是ai_msgs::msg::Point
-  track_center_ai_point.set__type("midline_point"); // 你可以给这个Point一个类型名称
+  ai_msgs::msg::Point track_center_ai_point; 
+  track_center_ai_point.set__type("midline_point");
 
-  geometry_msgs::msg::Point32 pt; // 实际的坐标数据是 geometry_msgs::msg::Point32
+  geometry_msgs::msg::Point32 pt;
   pt.set__x(x); // x 坐标
   pt.set__y(y); // y 坐标
-  pt.set__z(0.0); // Z轴设置为0，因为是2D坐标
+  pt.set__z(0.0); // Z轴设置为0
 
-  track_center_ai_point.point.emplace_back(pt); // 将 geometry_msgs::msg::Point32 添加到 ai_msgs::msg::Point 的 point 列表中
+  track_center_ai_point.point.emplace_back(pt); 
 
   // 将置信度添加到 ai_msgs::msg::Point 的 confidence 列表中
   // 因为只有一个点，所以 confidence 数组也只添加一个元素
@@ -201,7 +200,7 @@ void TrackDetectionNode::subscription_callback(
   if (!msg || !rclcpp::ok()) {
     return;
   }
-  // 新增：若巡线功能关闭，直接返回，不处理图像
+  // 若巡线功能关闭，直接返回，不处理图像
   if (!enable_lane_following_) {
     return;
   }
