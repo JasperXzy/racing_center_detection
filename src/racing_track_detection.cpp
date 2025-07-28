@@ -1,7 +1,7 @@
 #include "racing_track_detection/racing_track_detection.h"
 #include <fstream>
 #include <string>
-#include <cmath> // For std::exp (sigmoid inverse) or direct sigmoid computation
+#include <cmath>
 #include <opencv2/opencv.hpp>
 #include "dnn_node/util/image_proc.h"
 #include "hobot_cv/hobotcv_imgproc.h"
@@ -59,7 +59,6 @@ void prepare_nv12_tensor_without_padding(int image_height,
   hbSysAllocCachedMem(&tensor->sysMem[0], image_length);
 }
 
-// sigmoid 激活函数实现
 float sigmoid(float x) {
     return 1.0f / (1.0f + std::exp(-x));
 }
@@ -302,6 +301,9 @@ int32_t LineCoordinateParser::Parse(
   float x_norm = output_data[0];
   float y_norm = output_data[1];
   float confidence_logit = output_data[2]; // 读取第三个输出值
+
+  x_norm = std::max(-1.0f, std::min(1.0f, x_norm));
+  y_norm = std::max(-1.0f, std::min(1.0f, y_norm));
 
   result->confidence = sigmoid(confidence_logit); // 应用 Sigmoid
 
